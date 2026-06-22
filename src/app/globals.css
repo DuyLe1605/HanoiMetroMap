@@ -1,49 +1,836 @@
+/* ============================================
+   Hanoi Metro Map - Design System & Global CSS
+   ============================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Colors */
+  --bg-primary: #060a14;
+  --bg-surface: rgba(14, 18, 32, 0.92);
+  --bg-surface-hover: rgba(20, 26, 46, 0.95);
+  --bg-glass: rgba(16, 22, 42, 0.85);
+
+  --color-primary: #4f8cff;
+  --color-primary-glow: rgba(79, 140, 255, 0.3);
+
+  --color-line-2a: #00B14F;
+  --color-line-2a-glow: rgba(0, 177, 79, 0.3);
+  --color-line-3: #E5441B;
+  --color-line-3-glow: rgba(229, 68, 27, 0.3);
+
+  --color-text: #e8ecf4;
+  --color-text-secondary: #8892a8;
+  --color-text-dim: #555b6e;
+
+  --color-success: #00ff88;
+  --color-danger: #ff4466;
+  --color-warning: #ffaa00;
+
+  --color-border: rgba(79, 140, 255, 0.12);
+  --color-border-active: rgba(79, 140, 255, 0.35);
+
+  /* Typography */
+  --font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Reset */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-html {
+html, body {
+  width: 100%;
   height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--bg-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+/* ============================================
+   App Container
+   ============================================ */
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.scene-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+/* ============================================
+   Loading Screen
+   ============================================ */
+.loading-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-primary);
+}
+
+.loading-content {
+  text-align: center;
+}
+
+.loading-content h2 {
+  font-size: 1.4rem;
+  font-weight: 500;
+  margin-top: var(--space-lg);
+  color: var(--color-text);
+}
+
+.loading-content p {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-top: var(--space-sm);
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  margin: 0 auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Header
+   ============================================ */
+.app-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  background: linear-gradient(180deg, rgba(6, 10, 20, 0.95) 0%, rgba(6, 10, 20, 0.6) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+.app-header > * {
+  pointer-events: auto;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.logo-icon {
+  font-size: 2rem;
+  filter: drop-shadow(0 0 8px var(--color-primary-glow));
+}
+
+.logo-text h1 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e8ecf4 0%, var(--color-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.logo-text p {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 300;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.legend-dot--construction {
+  background: var(--color-text-dim);
+  border: 2px dashed var(--color-text-dim);
+  box-shadow: none;
+}
+
+.reset-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(10px);
+}
+
+.reset-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--color-border-active);
+  box-shadow: 0 0 12px var(--color-primary-glow);
+}
+
+/* ============================================
+   Line Selector (Bottom Bar)
+   ============================================ */
+.line-selector {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: var(--space-md) var(--space-lg) var(--space-lg);
+  background: linear-gradient(0deg, rgba(6, 10, 20, 0.97) 0%, rgba(6, 10, 20, 0.85) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+.line-selector > * {
+  pointer-events: auto;
+}
+
+.line-selector-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+  font-weight: 500;
+}
+
+.line-selector-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.line-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  cursor: pointer;
+  transition: all var(--transition-slow);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.line-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--line-color);
+  opacity: 0.5;
+  transition: opacity var(--transition-normal);
+}
+
+.line-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--line-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px color-mix(in srgb, var(--line-color) 20%, transparent);
+}
+
+.line-card:hover::before {
+  opacity: 1;
+}
+
+.line-card--active {
+  border-color: var(--line-color);
+  background: color-mix(in srgb, var(--line-color) 8%, var(--bg-surface));
+  box-shadow: 0 0 20px color-mix(in srgb, var(--line-color) 15%, transparent),
+              inset 0 0 30px color-mix(in srgb, var(--line-color) 5%, transparent);
+}
+
+.line-card--active::before {
+  opacity: 1;
+  height: 4px;
+  box-shadow: 0 0 10px var(--line-color);
+}
+
+.line-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.line-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.line-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.line-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line-meta {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.line-card-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-dim);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.line-hours {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+}
+
+.ride-btn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.ride-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.15);
+}
+
+.ride-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   Fare Calculator Panel
+   ============================================ */
+.fare-panel {
+  position: absolute;
+  top: 80px;
+  left: var(--space-lg);
+  z-index: 10;
+  width: 340px;
+  background: var(--bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideInLeft 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
   }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fare-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.fare-panel-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.fare-close-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all var(--transition-fast);
+}
+
+.fare-close-btn:hover {
+  background: rgba(255, 68, 102, 0.15);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.fare-stations {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.fare-station {
+  flex: 1;
+}
+
+.fare-station-label {
+  font-size: 0.68rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: var(--space-xs);
+}
+
+.fare-station-name {
+  font-size: 0.82rem;
+  color: var(--color-text-dim);
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.fare-station-name--active {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.fare-station-code {
+  padding: 2px 6px;
+  background: var(--color-primary);
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.fare-arrow {
+  color: var(--color-text-dim);
+  font-size: 1.2rem;
+  margin-top: 18px;
+}
+
+.fare-result {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fare-price-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.fare-price-item {
+  text-align: center;
+  padding: var(--space-md);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.fare-price-label {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.fare-price-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.fare-price-cash {
+  color: var(--color-warning);
+}
+
+.fare-price-card {
+  color: var(--color-success);
+}
+
+.fare-meta {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   Ride Overlay
+   ============================================ */
+.ride-overlay {
+  position: absolute;
+  top: 80px;
+  right: var(--space-lg);
+  z-index: 10;
+  width: 320px;
+  background: var(--bg-glass);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ride-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid;
+}
+
+.ride-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.ride-stop-btn {
+  padding: 6px 12px;
+  background: rgba(255, 68, 102, 0.15);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-family: var(--font-family);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.ride-stop-btn:hover {
+  background: rgba(255, 68, 102, 0.3);
+}
+
+/* Progress bar */
+.ride-progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.ride-progress-bar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ride-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.ride-progress-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Station info */
+.ride-station-info {
+  margin-bottom: var(--space-md);
+}
+
+.ride-current, .ride-next {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.ride-label {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  min-width: 80px;
+}
+
+.ride-station-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Speed controls */
+.ride-speed {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.ride-speed-btns {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.speed-btn {
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.speed-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.speed-btn--active {
+  color: white;
+  border-color: transparent;
+}
+
+/* Station dots */
+.ride-stations-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.ride-dot-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 3px 0;
+}
+
+.ride-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  transition: all var(--transition-normal);
+}
+
+.ride-dot--passed {
+  transform: scale(1.2);
+}
+
+.ride-dot-label {
+  font-size: 0.68rem;
+  color: var(--color-text-dim);
+  transition: color var(--transition-normal);
+}
+
+.ride-dot-label--current {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ============================================
+   Station Tooltip (inside R3F Html)
+   ============================================ */
+.station-tooltip {
+  background: rgba(10, 14, 26, 0.95);
+  border: 1px solid rgba(79, 140, 255, 0.25);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-width: 200px;
+  max-width: 260px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  animation: tooltipIn 0.2s ease;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.station-code {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.station-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e8ecf4;
+}
+
+.tooltip-construction {
+  font-size: 0.7rem;
+  color: #ffaa00;
+  margin-bottom: 4px;
+  padding: 3px 8px;
+  background: rgba(255, 170, 0, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.tooltip-address {
+  font-size: 0.72rem;
+  color: #8892a8;
+  margin-bottom: 4px;
+}
+
+.tooltip-desc {
+  font-size: 0.7rem;
+  color: #6b7389;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tooltip-hint {
+  font-size: 0.65rem;
+  color: #4f8cff;
+  text-align: center;
+  padding-top: 6px;
+  border-top: 1px solid rgba(79, 140, 255, 0.15);
 }
