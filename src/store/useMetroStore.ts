@@ -80,7 +80,7 @@ export const useMetroStore = create<MetroState>((set) => ({
   startRide: (lineId) => set({
     isRiding: true, rideProgress: 0, rideLineId: lineId,
     rideSpeed: 1, ridePaused: false, selectedLineId: lineId, rideCameraMode: 'third-person',
-    ridePanelHidden: false,
+    ridePanelHidden: true,
   }),
   stopRide: () => set({
     isRiding: false, rideProgress: 0, rideLineId: null, ridePaused: false, rideCameraMode: 'third-person',

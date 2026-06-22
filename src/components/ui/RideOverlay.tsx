@@ -55,172 +55,133 @@ export default function RideOverlay() {
 
   return (
     <>
-      {/* Floating HUD when information panel is hidden */}
-      {ridePanelHidden && (
-        <div className="ride-floating-hud">
+      {/* Compact Floating bottom dock */}
+      <div className="ride-dock">
+        {/* Left: Play/Pause and speed display */}
+        <div className="ride-dock-left">
           <button
-            className="ride-hud-btn"
-            onClick={toggleRideCameraMode}
-            title={rideCameraMode === 'first-person' ? 'Chuyển sang góc nhìn thứ ba' : 'Chuyển sang góc nhìn thứ nhất'}
-            style={{ borderColor: line.color, borderLeftWidth: '3px' }}
+            className="ride-dock-btn"
+            onClick={toggleRidePause}
+            title={ridePaused ? 'Tiếp tục' : 'Tạm dừng'}
+            style={{ borderColor: line.color, color: line.color, backgroundColor: `${line.color}15` }}
           >
-            {rideCameraMode === 'first-person' ? '🎥 Góc lái' : '🚁 Góc ngoài'}
+            {ridePaused ? '▶' : '⏸'}
           </button>
-          <button className="ride-hud-btn" onClick={toggleRidePanelHidden}>
-            👁️ Hiện thông tin
-          </button>
-          <button className="ride-hud-btn ride-hud-btn--exit" onClick={stopRide}>
-            ✕ Thoát
+          
+          <button
+            className="ride-dock-btn"
+            onClick={() => {
+              const nextSpeed = speeds[(speeds.indexOf(rideSpeed) + 1) % speeds.length];
+              setRideSpeed(nextSpeed);
+            }}
+            title="Tốc độ đi thử"
+            style={{ fontSize: '0.7rem', fontWeight: 800 }}
+          >
+            {rideSpeed}×
           </button>
         </div>
-      )}
 
-      {/* Right sidebar overlay — slides out to the right when hidden */}
-      <div className={`ride-overlay ${ridePanelHidden ? 'ride-overlay--hidden' : ''}`}>
-        {/* Header */}
-        <div className="ride-sidebar-header">
-          <div className="ride-line-name" style={{ color: line.color }}>
-            {line.name}
+        {/* Middle: Progress bar and next station status */}
+        <div className="ride-dock-middle">
+          <div className="ride-dock-status">
+            <span className="ride-dock-next">
+              Ga tiếp theo: <span style={{ color: line.color }}>{stations[currentInfo.nextIdx]?.name || '—'}</span>
+            </span>
+            <span className="ride-dock-meta">
+              {currentInfo.distToNext > 0 ? `${Math.round(currentInfo.distToNext)}m` : 'Đang tới'} • ↕ {currentInfo.elevation}m • {Math.round(rideProgress * 100)}%
+            </span>
           </div>
-          <button 
-            className="ride-collapse-btn" 
-            onClick={toggleRidePanelHidden} 
-            title="Thu nhỏ thông tin"
+          <div className="ride-progress-bar">
+            <div
+              className="ride-progress-fill"
+              style={{
+                width: `${rideProgress * 100}%`,
+                backgroundColor: line.color,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Right: Camera toggle, Timeline toggle, Exit */}
+        <div className="ride-dock-right">
+          {/* Camera View Mode */}
+          <button
+            className="ride-dock-btn"
+            onClick={toggleRideCameraMode}
+            title={rideCameraMode === 'first-person' ? 'Góc nhìn thứ ba' : 'Góc nhìn thứ nhất'}
+          >
+            {rideCameraMode === 'first-person' ? '🎥' : '🚁'}
+          </button>
+
+          {/* Detailed Timeline Toggle */}
+          <button
+            className={`ride-dock-btn ${!ridePanelHidden ? 'ride-dock-btn--active' : ''}`}
+            onClick={toggleRidePanelHidden}
+            title="Lộ trình chi tiết"
+          >
+            📋
+          </button>
+
+          {/* Exit Ride */}
+          <button
+            className="ride-dock-btn ride-dock-btn--exit"
+            onClick={stopRide}
+            title="Thoát lái thử"
           >
             ✕
           </button>
         </div>
+      </div>
 
-        {/* Progress bar */}
-        <div className="ride-progress-bar">
-          <div
-            className="ride-progress-fill"
-            style={{
-              width: `${rideProgress * 100}%`,
-              backgroundColor: line.color,
-            }}
-          />
+      {/* Collapsible right timeline sidebar */}
+      <div className={`ride-overlay ${ridePanelHidden ? 'ride-overlay--hidden' : ''}`}>
+        <div className="ride-sidebar-header">
+          <div className="ride-timeline-title" style={{ color: line.color }}>Lộ trình: {line.name}</div>
+          <button className="ride-collapse-btn" onClick={toggleRidePanelHidden} title="Thu nhỏ">
+            ✕
+          </button>
         </div>
 
-        {/* Next station + distance info card */}
-        <div className="ride-info-card" style={{ borderColor: `${line.color}30` }}>
-          <div className="ride-info-title">Ga tiếp theo</div>
-          <div className="ride-next-name" style={{ color: line.color }}>
-            {stations[currentInfo.nextIdx]?.name || '—'}
-          </div>
-          <div className="ride-info-details">
-            <span className="ride-distance">
-              {currentInfo.distToNext > 0 ? `${Math.round(currentInfo.distToNext)}m` : 'Đang tới ga'}
-            </span>
-            <span className="ride-info-divider">•</span>
-            <span className="ride-elevation">↕ {currentInfo.elevation}m</span>
-            <span className="ride-info-divider">•</span>
-            <span className="ride-progress-pct">{Math.round(rideProgress * 100)}%</span>
-          </div>
-        </div>
-
-        {/* Control buttons */}
-        <div className="ride-controls-section">
-          <div className="ride-controls-row">
-            {/* Play/Pause */}
-            <button
-              className="ride-control-btn ride-control-btn--main"
-              onClick={toggleRidePause}
-              title={ridePaused ? 'Tiếp tục' : 'Tạm dừng'}
+        <div className="ride-timeline-scroll">
+          <div className="ride-stations-timeline">
+            <div 
+              className="ride-timeline-line" 
               style={{ 
-                backgroundColor: `${line.color}15`, 
-                borderColor: line.color 
-              }}
-            >
-              {ridePaused ? '▶' : '⏸'}
-            </button>
-
-            {/* Camera View Mode */}
-            <button
-              className="ride-control-btn"
-              onClick={toggleRideCameraMode}
-              title={rideCameraMode === 'first-person' ? 'Chuyển sang góc ngoài (Theo sau)' : 'Chuyển sang góc lái (Buồng lái)'}
-              style={{ 
-                borderColor: rideCameraMode === 'first-person' ? line.color : undefined,
-                backgroundColor: rideCameraMode === 'first-person' ? `${line.color}15` : undefined
-              }}
-            >
-              {rideCameraMode === 'first-person' ? '🎥' : '🚁'}
-            </button>
-
-            {/* Stop / Quit */}
-            <button 
-              className="ride-control-btn ride-control-btn--exit" 
-              onClick={stopRide} 
-              title="Dừng đi thử"
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Speed controllers */}
-          <div className="ride-speed-row">
-            <span className="ride-speed-label">Tốc độ:</span>
-            <div className="ride-speed-buttons">
-              {speeds.map(sp => (
-                <button
-                  key={sp}
-                  className={`speed-btn ${rideSpeed === sp ? 'speed-btn--active' : ''}`}
-                  style={rideSpeed === sp ? { backgroundColor: line.color } : {}}
-                  onClick={() => setRideSpeed(sp)}
-                >
-                  {sp}×
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Vertical Timeline of Stations */}
-        <div className="ride-timeline-container">
-          <div className="ride-timeline-title">Lộ trình chi tiết</div>
-          <div className="ride-timeline-scroll">
-            <div className="ride-stations-timeline">
-              {/* Connected line behind dots */}
-              <div 
-                className="ride-timeline-line" 
-                style={{ 
-                  background: `linear-gradient(to bottom, ${line.color}, ${line.color}40)` 
-                }} 
-              />
-              
-              {stations.map((s, i) => {
-                const passed = (stationDistances.cumulative[i] / stationDistances.total) <= rideProgress;
-                const isCurrent = i === currentInfo.currentIdx;
-                const isNext = i === currentInfo.nextIdx;
-                return (
-                  <div key={s.id} className={`ride-timeline-item ${isCurrent ? 'ride-timeline-item--current' : ''}`}>
-                    <div
-                      className={`ride-timeline-dot ${passed ? 'ride-timeline-dot--passed' : ''} ${isCurrent ? 'ride-timeline-dot--current' : ''}`}
-                      style={{ 
-                        borderColor: line.color,
-                        backgroundColor: passed ? line.color : '#111524'
-                      }}
-                    />
-                    <div className="ride-timeline-content">
-                      <span className={`ride-timeline-name ${isCurrent ? 'ride-timeline-name--current' : ''} ${isNext ? 'ride-timeline-name--next' : ''}`}>
-                        {s.name}
+                background: `linear-gradient(to bottom, ${line.color}, ${line.color}40)` 
+              }} 
+            />
+            
+            {stations.map((s, i) => {
+              const passed = (stationDistances.cumulative[i] / stationDistances.total) <= rideProgress;
+              const isCurrent = i === currentInfo.currentIdx;
+              const isNext = i === currentInfo.nextIdx;
+              return (
+                <div key={s.id} className={`ride-timeline-item ${isCurrent ? 'ride-timeline-item--current' : ''}`}>
+                  <div
+                    className={`ride-timeline-dot ${passed ? 'ride-timeline-dot--passed' : ''} ${isCurrent ? 'ride-timeline-dot--current' : ''}`}
+                    style={{ 
+                      borderColor: line.color,
+                      backgroundColor: passed ? line.color : '#111524'
+                    }}
+                  />
+                  <div className="ride-timeline-content">
+                    <span className={`ride-timeline-name ${isCurrent ? 'ride-timeline-name--current' : ''} ${isNext ? 'ride-timeline-name--next' : ''}`}>
+                      {s.name}
+                    </span>
+                    {isCurrent && (
+                      <span className="ride-timeline-badge" style={{ backgroundColor: line.color }}>
+                        Đang qua
                       </span>
-                      {isCurrent && (
-                        <span className="ride-timeline-badge" style={{ backgroundColor: line.color }}>
-                          Đang qua
-                        </span>
-                      )}
-                      {isNext && (
-                        <span className="ride-timeline-badge ride-timeline-badge--next">
-                          Sắp tới
-                        </span>
-                      )}
-                    </div>
+                    )}
+                    {isNext && (
+                      <span className="ride-timeline-badge ride-timeline-badge--next">
+                        Sắp tới
+                      </span>
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
