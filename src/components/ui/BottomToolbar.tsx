@@ -12,9 +12,12 @@ export default function BottomToolbar() {
   const toggleStationNames = useMetroStore(s => s.toggleStationNames);
   const terrainFlat = useMetroStore(s => s.terrainFlat);
   const toggleTerrainFlat = useMetroStore(s => s.toggleTerrainFlat);
+  const showInfoDialog = useMetroStore(s => s.showInfoDialog);
   const setShowInfoDialog = useMetroStore(s => s.setShowInfoDialog);
   const mapStyle = useMetroStore(s => s.mapStyle);
   const setMapStyle = useMetroStore(s => s.setMapStyle);
+  const showFutureNetwork = useMetroStore(s => s.showFutureNetwork);
+  const toggleFutureNetwork = useMetroStore(s => s.toggleFutureNetwork);
 
   if (isRiding) return null;
 
@@ -68,6 +71,15 @@ export default function BottomToolbar() {
           </span>
         </button>
 
+        {/* Future planning network toggle */}
+        <button
+          className={`toolbar-tab ${showFutureNetwork ? 'toolbar-tab--active' : ''}`}
+          onClick={toggleFutureNetwork}
+        >
+          <span className="tab-icon">🔮</span>
+          <span className="tab-label">Quy hoạch</span>
+        </button>
+
         {/* Info button */}
         <button
           className="toolbar-tab"
@@ -80,7 +92,10 @@ export default function BottomToolbar() {
 
       {/* Bottom row: line selector circles */}
       <div className="line-circles">
-        {metroLines.map((line) => {
+        {(showFutureNetwork 
+          ? metroLines 
+          : metroLines.filter(l => l.id === 'line-2a' || l.id === 'line-3')
+        ).map((line) => {
           const isActive = selectedLineId === line.id;
           return (
             <button

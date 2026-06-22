@@ -39,11 +39,13 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
   const isTo = toStationId === station.id;
   const isConstruction = station.status === 'construction';
 
+  const showFutureNetwork = useMetroStore(s => s.showFutureNetwork);
+
   const [x, , z] = gpsTo3D(station.lat, station.lng);
   const y = terrainFlat ? FLAT_ELEV : station.elevation * ELEV_SCALE;
   const position: [number, number, number] = [x, y, z];
 
-  const markerColor = isFrom ? '#00ff88' : isTo ? '#ff4466' : isConstruction ? '#555b6e' : lineColor;
+  const markerColor = isFrom ? '#00ff88' : isTo ? '#ff4466' : (isConstruction && !showFutureNetwork) ? '#555b6e' : lineColor;
 
   // Scale: riding other line = tiny dots, normal = big markers
   const baseScale = isRidingOther ? 0.4 : 1;
@@ -71,9 +73,13 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
   }, [isRiding, fromStationId, toStationId, station.id, setFromStation, setToStation]);
 
   // Visibility
-  const markerOpacity = isRidingOther ? 0.25 : isSelectedLine ? 1 : 0.1;
-  const showLabel = showStationNames && !isRidingOther && isSelectedLine;
-  const showTooltip = hovered && !isRiding && isSelectedLine;
+  const markerOpacity = isRidingOther ? 0.25 : (showFutureNetwork ? 1.0 : (isSelectedLine ? 1 : 0.15));
+  const showLabel = showStationNames && !isRidingOther && (showFutureNetwork ? true : isSelectedLine);
+  const showTooltip = hovered && !isRiding && (showFutureNetwork ? true : isSelectedLine);
+
+  if (!showFutureNetwork && isConstruction) {
+    return null;
+  }
 
   return (
     <group position={position}>
@@ -158,7 +164,7 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
           style={{ pointerEvents: 'none', userSelect: 'none', zIndex: 1 }}
           occlude={false}
         >
-          <div className={`station-label ${hovered ? 'station-label--hovered' : ''} ${isConstruction ? 'station-label--construction' : ''}`}
+          <div className={`station-label ${hovered ? 'station-label--hovered' : ''} ${(isConstruction && !showFutureNetwork) ? 'station-label--construction' : ''}`}
                style={{ '--label-color': lineColor } as React.CSSProperties}>
             <span className="station-label-text">{station.name}</span>
           </div>

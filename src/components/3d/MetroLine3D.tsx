@@ -64,6 +64,9 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
   const isRiding = useMetroStore(s => s.isRiding);
   const rideLineId = useMetroStore(s => s.rideLineId);
   const terrainFlat = useMetroStore(s => s.terrainFlat);
+  const showFutureNetwork = useMetroStore(s => s.showFutureNetwork);
+
+  const isOperationalLine = lineId === 'line-2a' || lineId === 'line-3';
 
   const isSelected = selectedLineId === lineId || selectedLineId === null;
   const isHighlighted = selectedLineId === lineId;
@@ -79,11 +82,13 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
 
   // Split into active and construction segments
   const { activeGeom, constructionGeom, glowGeom, pillarPositions } = useMemo(() => {
-    // Active = all points up to construction start
-    const stationPointCount = 4; // 1 station + 3 intermediates
-    const activeEndIdx = constructionStartIdx * stationPointCount;
+    // If showFutureNetwork is true, treat the entire line as "active" (rendered fully as a thick glowing tube)
+    const stationPointCount = 4;
+    const activeEndIdx = showFutureNetwork ? detailedPoints.length : (constructionStartIdx * stationPointCount);
     const activePoints = detailedPoints.slice(0, Math.min(activeEndIdx, detailedPoints.length));
-    const constructionPoints = detailedPoints.slice(Math.max(0, activeEndIdx - stationPointCount));
+    const constructionPoints = showFutureNetwork 
+      ? [] 
+      : detailedPoints.slice(Math.max(0, activeEndIdx - stationPointCount));
 
     const ac = activePoints.length >= 2
       ? new THREE.CatmullRomCurve3(activePoints, false, 'catmullrom', 0.3)
@@ -93,36 +98,41 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
       ? new THREE.CatmullRomCurve3(constructionPoints, false, 'catmullrom', 0.3)
       : null;
 
-    // Thin tubes
+    // Thick tubes for active segments
     const ag = ac ? new THREE.TubeGeometry(ac, 200, 0.08, 6, false) : null;
     const cg = cc ? new THREE.TubeGeometry(cc, 80, 0.06, 6, false) : null;
     const gg = ac ? new THREE.TubeGeometry(ac, 200, 0.18, 6, false) : null;
 
-    // Support pillars — every few points on the active curve
     const pillars: THREE.Vector3[] = [];
     if (ac) {
       for (let t = 0; t < 1; t += 0.04) {
         const pt = ac.getPointAt(t);
-        if (pt.y > 0.3) { // Only where elevated
+        if (pt.y > 0.3) {
           pillars.push(pt.clone());
         }
       }
     }
 
     return { activeGeom: ag, constructionGeom: cg, glowGeom: gg, pillarPositions: pillars };
-  }, [detailedPoints, constructionStartIdx]);
+  }, [detailedPoints, constructionStartIdx, showFutureNetwork]);
 
   useFrame(({ clock }) => {
     if (glowRef.current) {
       const mat = glowRef.current.material as THREE.MeshStandardMaterial;
       mat.opacity = isHighlighted
-        ? 0.25 + Math.sin(clock.elapsedTime * 3) * 0.15
-        : 0.06;
+        ? 0.35 + Math.sin(clock.elapsedTime * 3) * 0.15
+        : (showFutureNetwork ? 0.28 : 0.06);
     }
   });
 
-  // During ride, dim other lines but keep visible
-  const lineOpacity = isRidingOther ? 0.15 : isSelected ? 1 : 0.12;
+  // During ride, dim other lines but keep visible. If showing future network, keep unselected lines clear and visible (opacity 1.0).
+  const unselectedOpacity = showFutureNetwork ? 1.0 : 0.25;
+  const lineOpacity = isRidingOther ? 0.25 : isSelected ? 1 : unselectedOpacity;
+
+  if (!showFutureNetwork && !isOperationalLine) {
+    return null;
+  }
+
 
   return (
     <group>
@@ -133,7 +143,7 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
             <meshStandardMaterial
               color={color}
               emissive={color}
-              emissiveIntensity={isHighlighted ? 0.8 : 0.4}
+              emissiveIntensity={isHighlighted ? 0.95 : (showFutureNetwork ? 0.85 : 0.45)}
               transparent
               opacity={lineOpacity}
               roughness={0.3}
@@ -157,7 +167,7 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
       )}
 
       {/* Construction segment */}
-      {constructionGeom && (
+      {showFutureNetwork && constructionGeom && (
         <mesh geometry={constructionGeom}>
           <meshStandardMaterial
             color={color}
@@ -177,7 +187,7 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
           <meshStandardMaterial
             color={color}
             transparent
-            opacity={isSelected ? 0.22 : 0.06}
+            opacity={isSelected ? 0.22 : (showFutureNetwork ? 0.12 : 0.06)}
             roughness={0.8}
           />
         </mesh>

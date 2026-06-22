@@ -229,7 +229,10 @@ html, body {
 .line-circles {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .line-circle {

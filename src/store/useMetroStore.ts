@@ -53,6 +53,10 @@ interface MetroState {
   // Map style
   mapStyle: 'voyager' | 'dark-matter' | 'satellite' | 'vector';
   setMapStyle: (style: 'voyager' | 'dark-matter' | 'satellite' | 'vector') => void;
+
+  // Future planning network toggle
+  showFutureNetwork: boolean;
+  toggleFutureNetwork: () => void;
 }
 
 export const useMetroStore = create<MetroState>((set) => ({
@@ -107,6 +111,9 @@ export const useMetroStore = create<MetroState>((set) => ({
 
   activeTab: 'ride',
   setActiveTab: (tab) => set({ activeTab: tab }),
+
+  showFutureNetwork: false,
+  toggleFutureNetwork: () => set((s) => ({ showFutureNetwork: !s.showFutureNetwork })),
 
   mapStyle: 'voyager', // Voyager as default for beautiful bright details, matching user feedback
   setMapStyle: (style) => set({ mapStyle: style }),

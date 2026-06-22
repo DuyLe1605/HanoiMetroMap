@@ -57,7 +57,8 @@ export function MapOrbitControls() {
       maxPolarAngle={is3D ? Math.PI / 2.1 : 0.01}
       minPolarAngle={is3D ? 0.2 : 0}
       minDistance={3}
-      maxDistance={120}
+      maxDistance={450}
+
       zoomSpeed={0.8}
       panSpeed={0.6}
       rotateSpeed={0.5}
