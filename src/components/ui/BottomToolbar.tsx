@@ -10,8 +10,9 @@ export default function BottomToolbar() {
   const startRide = useMetroStore(s => s.startRide);
   const showStationNames = useMetroStore(s => s.showStationNames);
   const toggleStationNames = useMetroStore(s => s.toggleStationNames);
-  const showMapFeatures = useMetroStore(s => s.showMapFeatures);
-  const toggleMapFeatures = useMetroStore(s => s.toggleMapFeatures);
+  const terrainFlat = useMetroStore(s => s.terrainFlat);
+  const toggleTerrainFlat = useMetroStore(s => s.toggleTerrainFlat);
+  const setShowInfoDialog = useMetroStore(s => s.setShowInfoDialog);
 
   if (isRiding) return null;
 
@@ -30,12 +31,12 @@ export default function BottomToolbar() {
           <span className="tab-label">Đi thử</span>
         </button>
 
-        {/* Terrain toggle */}
+        {/* Terrain toggle — flattens elevation instead of hiding */}
         <button
-          className={`toolbar-tab ${showMapFeatures ? 'toolbar-tab--active' : ''}`}
-          onClick={toggleMapFeatures}
+          className={`toolbar-tab ${terrainFlat ? 'toolbar-tab--active' : ''}`}
+          onClick={toggleTerrainFlat}
         >
-          <span className="tab-icon">〰️</span>
+          <span className="tab-icon">{terrainFlat ? '⏚' : '⛰️'}</span>
           <span className="tab-label">Địa hình</span>
         </button>
 
@@ -46,6 +47,15 @@ export default function BottomToolbar() {
         >
           <span className="tab-icon">🏷️</span>
           <span className="tab-label">Tên ga</span>
+        </button>
+
+        {/* Info button */}
+        <button
+          className="toolbar-tab"
+          onClick={() => setShowInfoDialog(true)}
+        >
+          <span className="tab-icon">ℹ️</span>
+          <span className="tab-label">Thông tin</span>
         </button>
       </div>
 
@@ -59,12 +69,16 @@ export default function BottomToolbar() {
               className={`line-circle ${isActive ? 'line-circle--active' : ''}`}
               style={{
                 '--lc': line.color,
+                backgroundColor: isActive ? 'transparent' : line.color,
                 borderColor: isActive ? line.color : 'transparent',
               } as React.CSSProperties}
               onClick={() => setSelectedLine(line.id)}
               title={line.name}
             >
-              <span style={{ color: isActive ? line.color : '#8892a8' }}>{line.nameShort}</span>
+              <span style={{
+                color: isActive ? line.color : '#ffffff',
+                fontWeight: isActive ? 800 : 700,
+              }}>{line.nameShort}</span>
             </button>
           );
         })}

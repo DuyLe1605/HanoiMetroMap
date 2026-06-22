@@ -9,6 +9,7 @@ import { gpsTo3D } from '@/utils/coordinates';
 import { useMetroStore } from '@/store/useMetroStore';
 
 const ELEV_SCALE = 0.6;
+const FLAT_ELEV = 0.15;
 
 interface StationMarkerProps {
   station: Station;
@@ -29,6 +30,7 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
   const isRiding = useMetroStore(s => s.isRiding);
   const rideLineId = useMetroStore(s => s.rideLineId);
   const showStationNames = useMetroStore(s => s.showStationNames);
+  const terrainFlat = useMetroStore(s => s.terrainFlat);
 
   const isSelectedLine = selectedLineId === null || selectedLineId === station.lineId;
   const isRidingThisLine = isRiding && rideLineId === station.lineId;
@@ -38,7 +40,7 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
   const isConstruction = station.status === 'construction';
 
   const [x, , z] = gpsTo3D(station.lat, station.lng);
-  const y = station.elevation * ELEV_SCALE;
+  const y = terrainFlat ? FLAT_ELEV : station.elevation * ELEV_SCALE;
   const position: [number, number, number] = [x, y, z];
 
   const markerColor = isFrom ? '#00ff88' : isTo ? '#ff4466' : isConstruction ? '#555b6e' : lineColor;

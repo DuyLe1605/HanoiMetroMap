@@ -7,43 +7,61 @@ import { redRiver, toLichRiver, westLake, hoanKiemLake, majorRoads } from '@/uti
 import { useMetroStore } from '@/store/useMetroStore';
 import { Html } from '@react-three/drei';
 
-// District area data — polygons for visual terrain blocks
+// District area data — polygons with realistic colors (not just black)
 const districts = [
-  { name: 'Đống Đa', color: '#0d1520', coords: [[21.035,105.82],[21.035,105.845],[21.015,105.845],[21.005,105.82],[21.015,105.805],[21.035,105.82]] },
-  { name: 'Ba Đình', color: '#0e1722', coords: [[21.055,105.81],[21.055,105.84],[21.035,105.845],[21.035,105.82],[21.04,105.81],[21.055,105.81]] },
-  { name: 'Cầu Giấy', color: '#0c1420', coords: [[21.045,105.78],[21.045,105.81],[21.035,105.82],[21.015,105.805],[21.02,105.78],[21.045,105.78]] },
-  { name: 'Thanh Xuân', color: '#0b131e', coords: [[21.015,105.805],[21.005,105.82],[20.985,105.82],[20.98,105.80],[20.99,105.79],[21.015,105.805]] },
-  { name: 'Hà Đông', color: '#0a121c', coords: [[20.985,105.795],[20.98,105.80],[20.955,105.79],[20.94,105.75],[20.95,105.745],[20.985,105.76],[20.985,105.795]] },
-  { name: 'Nam Từ Liêm', color: '#0c1520', coords: [[21.04,105.76],[21.04,105.78],[21.02,105.78],[20.99,105.79],[20.985,105.76],[21.02,105.74],[21.04,105.76]] },
-  { name: 'Bắc Từ Liêm', color: '#0b1420', coords: [[21.065,105.72],[21.065,105.78],[21.04,105.78],[21.04,105.76],[21.02,105.74],[21.04,105.72],[21.065,105.72]] },
-  { name: 'Hoàn Kiếm', color: '#0f1825', coords: [[21.035,105.845],[21.035,105.86],[21.02,105.86],[21.015,105.845],[21.035,105.845]] },
-  { name: 'Tây Hồ', color: '#0d1622', coords: [[21.08,105.81],[21.08,105.85],[21.055,105.84],[21.055,105.81],[21.08,105.81]] },
-  { name: 'Long Biên', color: '#0a1320', coords: [[21.06,105.86],[21.06,105.90],[21.04,105.90],[21.035,105.86],[21.055,105.84],[21.06,105.86]] },
+  { name: 'Đống Đa', color: '#1a2233', coords: [[21.035,105.82],[21.035,105.845],[21.015,105.845],[21.005,105.82],[21.015,105.805],[21.035,105.82]] },
+  { name: 'Ba Đình', color: '#1c2436', coords: [[21.055,105.81],[21.055,105.84],[21.035,105.845],[21.035,105.82],[21.04,105.81],[21.055,105.81]] },
+  { name: 'Cầu Giấy', color: '#182030', coords: [[21.045,105.78],[21.045,105.81],[21.035,105.82],[21.015,105.805],[21.02,105.78],[21.045,105.78]] },
+  { name: 'Thanh Xuân', color: '#161e2e', coords: [[21.015,105.805],[21.005,105.82],[20.985,105.82],[20.98,105.80],[20.99,105.79],[21.015,105.805]] },
+  { name: 'Hà Đông', color: '#141c2a', coords: [[20.985,105.795],[20.98,105.80],[20.955,105.79],[20.94,105.75],[20.95,105.745],[20.985,105.76],[20.985,105.795]] },
+  { name: 'Nam Từ Liêm', color: '#182030', coords: [[21.04,105.76],[21.04,105.78],[21.02,105.78],[20.99,105.79],[20.985,105.76],[21.02,105.74],[21.04,105.76]] },
+  { name: 'Bắc Từ Liêm', color: '#161e2e', coords: [[21.065,105.72],[21.065,105.78],[21.04,105.78],[21.04,105.76],[21.02,105.74],[21.04,105.72],[21.065,105.72]] },
+  { name: 'Hoàn Kiếm', color: '#1e2840', coords: [[21.035,105.845],[21.035,105.86],[21.02,105.86],[21.015,105.845],[21.035,105.845]] },
+  { name: 'Tây Hồ', color: '#1a2436', coords: [[21.08,105.81],[21.08,105.85],[21.055,105.84],[21.055,105.81],[21.08,105.81]] },
+  { name: 'Long Biên', color: '#152030', coords: [[21.06,105.86],[21.06,105.90],[21.04,105.90],[21.035,105.86],[21.055,105.84],[21.06,105.86]] },
 ];
 
-// Street grid for visual texture
+// Denser street grid for realistic city texture
 const streetGrid: [number, number][][] = [
   // Horizontal streets
   [[21.06, 105.72], [21.06, 105.90]],
+  [[21.055, 105.72], [21.055, 105.90]],
   [[21.05, 105.72], [21.05, 105.90]],
+  [[21.045, 105.72], [21.045, 105.90]],
   [[21.04, 105.72], [21.04, 105.90]],
+  [[21.035, 105.72], [21.035, 105.90]],
   [[21.03, 105.72], [21.03, 105.90]],
+  [[21.025, 105.74], [21.025, 105.88]],
   [[21.02, 105.72], [21.02, 105.90]],
+  [[21.015, 105.74], [21.015, 105.88]],
   [[21.01, 105.74], [21.01, 105.88]],
+  [[21.005, 105.76], [21.005, 105.86]],
   [[21.00, 105.76], [21.00, 105.86]],
+  [[20.995, 105.76], [20.995, 105.85]],
   [[20.99, 105.76], [20.99, 105.85]],
+  [[20.985, 105.76], [20.985, 105.84]],
   [[20.98, 105.76], [20.98, 105.84]],
+  [[20.975, 105.74], [20.975, 105.82]],
   [[20.97, 105.74], [20.97, 105.82]],
+  [[20.965, 105.74], [20.965, 105.80]],
   [[20.96, 105.74], [20.96, 105.80]],
+  [[20.955, 105.74], [20.955, 105.78]],
   [[20.95, 105.74], [20.95, 105.78]],
   // Vertical streets
   [[20.93, 105.74], [21.08, 105.74]],
+  [[20.93, 105.75], [21.08, 105.75]],
   [[20.93, 105.76], [21.08, 105.76]],
+  [[20.94, 105.77], [21.08, 105.77]],
   [[20.94, 105.78], [21.08, 105.78]],
+  [[20.96, 105.79], [21.08, 105.79]],
   [[20.96, 105.80], [21.08, 105.80]],
+  [[20.98, 105.81], [21.08, 105.81]],
   [[20.98, 105.82], [21.08, 105.82]],
+  [[21.00, 105.83], [21.08, 105.83]],
   [[21.00, 105.84], [21.08, 105.84]],
+  [[21.01, 105.85], [21.08, 105.85]],
   [[21.01, 105.86], [21.08, 105.86]],
+  [[21.02, 105.87], [21.06, 105.87]],
   [[21.02, 105.88], [21.06, 105.88]],
 ];
 
@@ -72,7 +90,7 @@ function DistrictFill({ name, color, coords }: { name: string; color: string; co
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
         <shapeGeometry args={[shape]} />
-        <meshStandardMaterial color={color} roughness={1} />
+        <meshStandardMaterial color={color} roughness={0.9} />
       </mesh>
       {/* District name label */}
       <Html position={[center[0], 0.1, center[1]]} center style={{ pointerEvents: 'none' }}>
@@ -94,7 +112,7 @@ function StreetLines() {
             <bufferGeometry>
               <bufferAttribute attach="attributes-position" args={[positions, 3]} />
             </bufferGeometry>
-            <lineBasicMaterial color="#141c2a" transparent opacity={0.4} />
+            <lineBasicMaterial color="#222d42" transparent opacity={0.35} />
           </line>
         );
       })}
@@ -178,40 +196,35 @@ function RoadLine({ feature }: { feature: { coordinates: [number, number][]; sty
 }
 
 export default function MapGround() {
-  const showMapFeatures = useMetroStore(s => s.showMapFeatures);
-
   return (
     <group>
-      {/* Base ground */}
+      {/* Base ground — dark navy instead of pure black */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
         <planeGeometry args={[250, 250]} />
-        <meshStandardMaterial color="#070b15" roughness={1} />
+        <meshStandardMaterial color="#0e1524" roughness={1} />
       </mesh>
 
-      {showMapFeatures && (
-        <>
-          {/* District fill areas — creates visible terrain blocks */}
-          {districts.map(d => (
-            <DistrictFill key={d.name} name={d.name} color={d.color} coords={d.coords as [number, number][]} />
-          ))}
+      {/* Always show map features (terrain toggle now controls elevation, not visibility) */}
+      {/* District fill areas */}
+      {districts.map(d => (
+        <DistrictFill key={d.name} name={d.name} color={d.color} coords={d.coords as [number, number][]} />
+      ))}
 
-          {/* Street grid for visual texture */}
-          <StreetLines />
+      {/* Street grid for visual texture */}
+      <StreetLines />
 
-          {/* Rivers */}
-          <RiverMesh feature={redRiver} />
-          <RiverMesh feature={toLichRiver} />
+      {/* Rivers */}
+      <RiverMesh feature={redRiver} />
+      <RiverMesh feature={toLichRiver} />
 
-          {/* Lakes */}
-          <LakeMesh feature={westLake} />
-          <LakeMesh feature={hoanKiemLake} />
+      {/* Lakes */}
+      <LakeMesh feature={westLake} />
+      <LakeMesh feature={hoanKiemLake} />
 
-          {/* Major Roads */}
-          {majorRoads.map((road, i) => (
-            <RoadLine key={i} feature={road} />
-          ))}
-        </>
-      )}
+      {/* Major Roads */}
+      {majorRoads.map((road, i) => (
+        <RoadLine key={i} feature={road} />
+      ))}
     </group>
   );
 }

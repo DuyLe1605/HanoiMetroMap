@@ -34,9 +34,13 @@ interface MetroState {
 
   // Display settings
   showStationNames: boolean;
-  showMapFeatures: boolean;
+  terrainFlat: boolean;
   toggleStationNames: () => void;
-  toggleMapFeatures: () => void;
+  toggleTerrainFlat: () => void;
+
+  // Info dialog
+  showInfoDialog: boolean;
+  setShowInfoDialog: (show: boolean) => void;
 
   // Active tab
   activeTab: 'ride' | 'route' | 'fare' | 'stations' | 'info';
@@ -78,9 +82,12 @@ export const useMetroStore = create<MetroState>((set) => ({
   toggle3D: () => set((s) => ({ is3D: !s.is3D })),
 
   showStationNames: true,
-  showMapFeatures: true,
+  terrainFlat: false,
   toggleStationNames: () => set((s) => ({ showStationNames: !s.showStationNames })),
-  toggleMapFeatures: () => set((s) => ({ showMapFeatures: !s.showMapFeatures })),
+  toggleTerrainFlat: () => set((s) => ({ terrainFlat: !s.terrainFlat })),
+
+  showInfoDialog: false,
+  setShowInfoDialog: (show) => set({ showInfoDialog: show }),
 
   activeTab: 'ride',
   setActiveTab: (tab) => set({ activeTab: tab }),

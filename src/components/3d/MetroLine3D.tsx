@@ -8,23 +8,24 @@ import { gpsTo3D } from '@/utils/coordinates';
 import { useMetroStore } from '@/store/useMetroStore';
 
 const ELEV_SCALE = 0.6;
+const FLAT_ELEV = 0.15; // small uniform height when flattened
 
 // Add intermediate waypoints between stations for more realistic path length
-function getDetailedPath(lineId: string): THREE.Vector3[] {
+function getDetailedPath(lineId: string, flat: boolean): THREE.Vector3[] {
   const stations = getStationsByLine(lineId);
   const points: THREE.Vector3[] = [];
 
   for (let i = 0; i < stations.length; i++) {
     const s = stations[i];
     const [x, , z] = gpsTo3D(s.lat, s.lng);
-    const y = s.elevation * ELEV_SCALE;
+    const y = flat ? FLAT_ELEV : s.elevation * ELEV_SCALE;
     points.push(new THREE.Vector3(x, y, z));
 
     // Add 2-3 intermediate points between stations for longer, more realistic paths
     if (i < stations.length - 1) {
       const ns = stations[i + 1];
       const [nx, , nz] = gpsTo3D(ns.lat, ns.lng);
-      const ny = ns.elevation * ELEV_SCALE;
+      const ny = flat ? FLAT_ELEV : ns.elevation * ELEV_SCALE;
 
       // Create gentle curves between stations
       const steps = 3;
@@ -33,7 +34,7 @@ function getDetailedPath(lineId: string): THREE.Vector3[] {
         const mx = x + (nx - x) * t;
         const mz = z + (nz - z) * t;
         // Slight elevation variation (realistic rail gentle slopes)
-        const my = y + (ny - y) * t + Math.sin(t * Math.PI) * 0.3;
+        const my = flat ? FLAT_ELEV : (y + (ny - y) * t + Math.sin(t * Math.PI) * 0.3);
         // Add slight lateral curve for realistic path
         const perpX = -(nz - z);
         const perpZ = (nx - x);
@@ -62,13 +63,14 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
   const selectedLineId = useMetroStore(s => s.selectedLineId);
   const isRiding = useMetroStore(s => s.isRiding);
   const rideLineId = useMetroStore(s => s.rideLineId);
+  const terrainFlat = useMetroStore(s => s.terrainFlat);
 
   const isSelected = selectedLineId === lineId || selectedLineId === null;
   const isHighlighted = selectedLineId === lineId;
   const isRidingOther = isRiding && rideLineId !== lineId;
 
   const stations = useMemo(() => getStationsByLine(lineId), [lineId]);
-  const detailedPoints = useMemo(() => getDetailedPath(lineId), [lineId]);
+  const detailedPoints = useMemo(() => getDetailedPath(lineId, terrainFlat), [lineId, terrainFlat]);
 
   const constructionStartIdx = useMemo(() => {
     const idx = stations.findIndex(s => s.status === 'construction');

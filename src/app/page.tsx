@@ -5,6 +5,7 @@ import Header from '@/components/ui/Header';
 import BottomToolbar from '@/components/ui/BottomToolbar';
 import FareCalculator from '@/components/ui/FareCalculator';
 import RideOverlay from '@/components/ui/RideOverlay';
+import InfoDialog from '@/components/ui/InfoDialog';
 
 const MetroScene = dynamic(() => import('@/components/3d/MetroScene'), {
   ssr: false,
@@ -30,6 +31,7 @@ export default function HomePage() {
       <FareCalculator />
       <RideOverlay />
       <BottomToolbar />
+      <InfoDialog />
     </main>
   );
 }

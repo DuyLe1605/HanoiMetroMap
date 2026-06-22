@@ -16,7 +16,7 @@ export default function MetroScene() {
       style={{ width: '100%', height: '100%' }}
       gl={{ antialias: true, alpha: false }}
       onCreated={({ gl }) => {
-        gl.setClearColor('#070b15');
+        gl.setClearColor('#0e1524');
         gl.toneMapping = 2;
         gl.toneMappingExposure = 1.2;
       }}
@@ -57,7 +57,7 @@ export default function MetroScene() {
       <TrainModel />
 
       {/* Fog — longer distance for elevated view */}
-      <fog attach="fog" args={['#070b15', 70, 180]} />
+      <fog attach="fog" args={['#0e1524', 70, 180]} />
     </Canvas>
   );
 }

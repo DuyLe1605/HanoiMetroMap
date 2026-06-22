@@ -3,7 +3,7 @@
    ============================================ */
 
 :root {
-  --bg-primary: #0a0e1a;
+  --bg-primary: #0e1524;
   --bg-surface: rgba(14, 18, 32, 0.92);
   --bg-glass: rgba(12, 16, 28, 0.88);
   --color-primary: #4f8cff;
@@ -196,29 +196,33 @@ html, body {
 }
 
 .line-circle {
-  width: 38px; height: 38px;
+  width: 40px; height: 40px;
   border-radius: 50%;
-  border: 2.5px solid transparent;
-  background: var(--bg-glass);
-  backdrop-filter: blur(16px);
+  border: 3px solid transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-family);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 700;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .line-circle:hover {
-  transform: scale(1.15);
+  transform: scale(1.12);
+  filter: brightness(1.15);
 }
 
 .line-circle--active {
-  transform: scale(1.2);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--lc) 40%, transparent);
-  background: color-mix(in srgb, var(--lc) 15%, var(--bg-glass));
+  transform: scale(1.25);
+  background: transparent !important;
+  border-color: var(--lc) !important;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.15),
+    0 0 18px color-mix(in srgb, var(--lc) 50%, transparent),
+    0 0 30px color-mix(in srgb, var(--lc) 25%, transparent);
 }
 
 .ride-start-btn {
@@ -554,3 +558,178 @@ html, body {
 .tooltip-desc { font-size: 0.65rem; color: #6b7389; margin-bottom: 5px; line-height: 1.4; }
 .tooltip-meta { font-size: 0.62rem; color: #6b7389; margin-bottom: 5px; }
 .tooltip-hint { font-size: 0.6rem; color: #4f8cff; text-align: center; padding-top: 5px; border-top: 1px solid rgba(79,140,255,0.15); }
+
+/* ============================================
+   Info Dialog
+   ============================================ */
+.info-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.25s ease;
+}
+
+.info-dialog {
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  background: rgba(14, 18, 32, 0.97);
+  border: 1px solid rgba(79, 140, 255, 0.2);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.8),
+    0 0 40px rgba(79, 140, 255, 0.08);
+  animation: tooltipIn 0.3s ease;
+}
+
+.info-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(79, 140, 255, 0.12);
+}
+
+.info-dialog-header h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #e8ecf4, var(--color-primary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.info-close-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  transition: all 0.15s ease;
+}
+.info-close-btn:hover {
+  background: rgba(255, 68, 102, 0.15);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.info-dialog-body {
+  padding: 16px 22px 22px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.info-section {
+  margin-bottom: 18px;
+}
+.info-section:last-child { margin-bottom: 0; }
+
+.info-section-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(79, 140, 255, 0.08);
+}
+
+.info-desc {
+  font-size: 0.75rem;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+}
+.info-desc--highlight {
+  color: var(--color-text);
+  background: rgba(79, 140, 255, 0.06);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+.info-desc--dim {
+  color: var(--color-text-dim);
+  font-style: italic;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+}
+.info-list li {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  padding: 4px 0 4px 14px;
+  position: relative;
+  line-height: 1.5;
+}
+.info-list li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.info-lines-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-line-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+.info-line-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.info-line-badge {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: white;
+  flex-shrink: 0;
+}
+
+.info-line-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.info-line-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.info-line-meta {
+  font-size: 0.65rem;
+  color: var(--color-text-dim);
+}
