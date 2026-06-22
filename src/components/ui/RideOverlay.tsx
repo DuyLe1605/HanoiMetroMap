@@ -12,9 +12,13 @@ export default function RideOverlay() {
   const rideProgress = useMetroStore(s => s.rideProgress);
   const rideSpeed = useMetroStore(s => s.rideSpeed);
   const ridePaused = useMetroStore(s => s.ridePaused);
+  const rideCameraMode = useMetroStore(s => s.rideCameraMode);
+  const ridePanelHidden = useMetroStore(s => s.ridePanelHidden);
   const stopRide = useMetroStore(s => s.stopRide);
   const setRideSpeed = useMetroStore(s => s.setRideSpeed);
   const toggleRidePause = useMetroStore(s => s.toggleRidePause);
+  const toggleRideCameraMode = useMetroStore(s => s.toggleRideCameraMode);
+  const toggleRidePanelHidden = useMetroStore(s => s.toggleRidePanelHidden);
 
   const line = useMemo(() => metroLines.find(l => l.id === rideLineId), [rideLineId]);
   const stations = useMemo(() => rideLineId ? getStationsByLine(rideLineId) : [], [rideLineId]);
@@ -51,13 +55,15 @@ export default function RideOverlay() {
 
   return (
     <>
-      {/* Back button — top left */}
-      <button className="ride-back-btn" onClick={stopRide}>
-        ← Quay lại bản đồ
-      </button>
+      {/* Back button — top left — only show if panel is not hidden */}
+      {!ridePanelHidden && (
+        <button className="ride-back-btn" onClick={stopRide}>
+          ← Quay lại bản đồ
+        </button>
+      )}
 
-      {/* Bottom overlay */}
-      <div className="ride-overlay">
+      {/* Bottom overlay — slides offscreen if hidden */}
+      <div className={`ride-overlay ${ridePanelHidden ? 'ride-overlay--hidden' : ''}`}>
         {/* Drag handle */}
         <div className="ride-handle" />
 
@@ -121,6 +127,28 @@ export default function RideOverlay() {
               {sp}×
             </button>
           ))}
+
+          {/* Camera View Mode */}
+          <button
+            className="ride-control-btn"
+            onClick={toggleRideCameraMode}
+            title={rideCameraMode === 'first-person' ? 'Chuyển sang Góc nhìn thứ ba (Theo sau)' : 'Chuyển sang Góc nhìn thứ nhất (Buồng lái)'}
+            style={{ 
+              borderColor: rideCameraMode === 'first-person' ? line.color : undefined,
+              backgroundColor: rideCameraMode === 'first-person' ? `${line.color}15` : undefined
+            }}
+          >
+            {rideCameraMode === 'first-person' ? '🎥' : '🚁'}
+          </button>
+
+          {/* Hide Panel */}
+          <button
+            className="ride-control-btn"
+            onClick={toggleRidePanelHidden}
+            title="Ẩn bảng thông tin"
+          >
+            👁️
+          </button>
         </div>
 
         {/* Station dots line */}
@@ -143,6 +171,26 @@ export default function RideOverlay() {
           })}
         </div>
       </div>
+
+      {/* Floating HUD when information panel is hidden */}
+      {ridePanelHidden && (
+        <div className="ride-floating-hud">
+          <button
+            className="ride-hud-btn"
+            onClick={toggleRideCameraMode}
+            title={rideCameraMode === 'first-person' ? 'Chuyển sang góc nhìn thứ ba' : 'Chuyển sang góc nhìn thứ nhất'}
+            style={{ borderColor: line.color, borderLeftWidth: '3px' }}
+          >
+            {rideCameraMode === 'first-person' ? '🎥 Góc lái' : '🚁 Góc ngoài'}
+          </button>
+          <button className="ride-hud-btn" onClick={toggleRidePanelHidden}>
+            👁️ Hiện thông tin
+          </button>
+          <button className="ride-hud-btn ride-hud-btn--exit" onClick={stopRide}>
+            ✕ Thoát
+          </button>
+        </div>
+      )}
     </>
   );
 }

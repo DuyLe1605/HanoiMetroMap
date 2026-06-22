@@ -82,6 +82,7 @@ export default function CameraController() {
   const isRiding = useMetroStore(s => s.isRiding);
   const rideLineId = useMetroStore(s => s.rideLineId);
   const rideProgress = useMetroStore(s => s.rideProgress);
+  const rideCameraMode = useMetroStore(s => s.rideCameraMode);
   const is3D = useMetroStore(s => s.is3D);
 
   const rideCurve = useRef<THREE.CatmullRomCurve3 | null>(null);
@@ -152,16 +153,33 @@ export default function CameraController() {
     const trainPoint = rideCurve.current.getPointAt(t);
     const tangent = rideCurve.current.getTangentAt(t);
 
-    // Third-person follow: camera BEHIND and ABOVE the train
-    const camPos = trainPoint.clone();
-    camPos.x -= tangent.x * 6;  // 6 units behind
-    camPos.z -= tangent.z * 6;
-    camPos.y += 5;  // 5 units above track
+    const camPos = new THREE.Vector3();
+    const lookPt = new THREE.Vector3();
 
-    // Look ahead of the train
-    const lookT = Math.min(t + 0.02, 0.999);
-    const lookPt = rideCurve.current.getPointAt(lookT);
-    lookPt.y += 1;
+    if (rideCameraMode === 'first-person') {
+      // First-person cab view: camera inside the train cab looking forward
+      camPos.copy(trainPoint);
+      camPos.y += 0.42; // slightly above tracks, corresponding to train cab window height
+      camPos.addScaledVector(tangent, 0.6); // move slightly forward to prevent clipping train model
+
+      // Look slightly ahead along the tangent
+      const lookT = Math.min(t + 0.03, 0.999);
+      const targetLook = rideCurve.current.getPointAt(lookT);
+      lookPt.copy(targetLook);
+      lookPt.y += 0.42;
+    } else {
+      // Third-person follow: camera BEHIND and ABOVE the train
+      camPos.copy(trainPoint);
+      camPos.x -= tangent.x * 6;  // 6 units behind
+      camPos.z -= tangent.z * 6;
+      camPos.y += 5;  // 5 units above track
+
+      // Look ahead of the train
+      const lookT = Math.min(t + 0.02, 0.999);
+      const targetLook = rideCurve.current.getPointAt(lookT);
+      lookPt.copy(targetLook);
+      lookPt.y += 1;
+    }
 
     if (!initialized.current) {
       smoothPos.current.copy(camPos);
@@ -169,8 +187,11 @@ export default function CameraController() {
       initialized.current = true;
     }
 
-    smoothPos.current.lerp(camPos, 0.04);
-    smoothLook.current.lerp(lookPt, 0.03);
+    // Smooth camera transition between modes and movement
+    const lerpFactorPos = rideCameraMode === 'first-person' ? 0.08 : 0.04;
+    const lerpFactorLook = rideCameraMode === 'first-person' ? 0.10 : 0.03;
+    smoothPos.current.lerp(camPos, lerpFactorPos);
+    smoothLook.current.lerp(lookPt, lerpFactorLook);
 
     camera.position.copy(smoothPos.current);
     camera.lookAt(smoothLook.current);

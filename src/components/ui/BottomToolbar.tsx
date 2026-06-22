@@ -13,6 +13,8 @@ export default function BottomToolbar() {
   const terrainFlat = useMetroStore(s => s.terrainFlat);
   const toggleTerrainFlat = useMetroStore(s => s.toggleTerrainFlat);
   const setShowInfoDialog = useMetroStore(s => s.setShowInfoDialog);
+  const mapStyle = useMetroStore(s => s.mapStyle);
+  const setMapStyle = useMetroStore(s => s.setMapStyle);
 
   if (isRiding) return null;
 
@@ -47,6 +49,23 @@ export default function BottomToolbar() {
         >
           <span className="tab-icon">🏷️</span>
           <span className="tab-label">Tên ga</span>
+        </button>
+
+        {/* Map style selection cycle */}
+        <button
+          className={`toolbar-tab toolbar-tab--map style-${mapStyle}`}
+          onClick={() => {
+            const styles: ('voyager' | 'dark-matter' | 'satellite' | 'vector')[] = ['voyager', 'dark-matter', 'satellite', 'vector'];
+            const nextIdx = (styles.indexOf(mapStyle) + 1) % styles.length;
+            setMapStyle(styles[nextIdx]);
+          }}
+        >
+          <span className="tab-icon">
+            {mapStyle === 'voyager' ? '🗺️' : mapStyle === 'dark-matter' ? '🌑' : mapStyle === 'satellite' ? '🛰️' : '📐'}
+          </span>
+          <span className="tab-label">
+            {mapStyle === 'voyager' ? 'Bản đồ sáng' : mapStyle === 'dark-matter' ? 'Bản đồ tối' : mapStyle === 'satellite' ? 'Vệ tinh' : 'Tối giản'}
+          </span>
         </button>
 
         {/* Info button */}

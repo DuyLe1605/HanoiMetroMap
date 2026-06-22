@@ -188,6 +188,43 @@ html, body {
 .tab-icon { font-size: 1.1rem; }
 .tab-label { font-size: 0.62rem; font-weight: 600; }
 
+/* Map style variations */
+.toolbar-tab--map.style-voyager {
+  background: rgba(79, 140, 255, 0.08);
+  border-color: rgba(79, 140, 255, 0.20);
+  color: #a3c5ff;
+}
+.toolbar-tab--map.style-voyager:hover {
+  background: rgba(79, 140, 255, 0.16);
+}
+
+.toolbar-tab--map.style-dark-matter {
+  background: rgba(136, 146, 168, 0.06);
+  border-color: rgba(136, 146, 168, 0.18);
+  color: #cbd3e3;
+}
+.toolbar-tab--map.style-dark-matter:hover {
+  background: rgba(136, 146, 168, 0.14);
+}
+
+.toolbar-tab--map.style-satellite {
+  background: rgba(0, 255, 136, 0.06);
+  border-color: rgba(0, 255, 136, 0.18);
+  color: #99ffcc;
+}
+.toolbar-tab--map.style-satellite:hover {
+  background: rgba(0, 255, 136, 0.14);
+}
+
+.toolbar-tab--map.style-vector {
+  background: rgba(255, 170, 0, 0.06);
+  border-color: rgba(255, 170, 0, 0.18);
+  color: #ffe0a3;
+}
+.toolbar-tab--map.style-vector:hover {
+  background: rgba(255, 170, 0, 0.14);
+}
+
 /* Line circles */
 .line-circles {
   display: flex;
@@ -732,4 +769,63 @@ html, body {
 .info-line-meta {
   font-size: 0.65rem;
   color: var(--color-text-dim);
+}
+
+/* Slide overlay down and fade when hidden */
+.ride-overlay.ride-overlay--hidden {
+  transform: translateX(-50%) translateY(105%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transition for standard overlay opening */
+.ride-overlay {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Floating HUD when info panel is hidden */
+.ride-floating-hud {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(8, 12, 18, 0.9);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 8px 12px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ride-hud-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.ride-hud-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.ride-hud-btn--exit:hover {
+  background: rgba(255, 68, 102, 0.15);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }

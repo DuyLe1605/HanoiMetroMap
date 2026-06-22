@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { gpsTo3D } from '@/utils/coordinates';
 import { redRiver, toLichRiver, westLake, hoanKiemLake, majorRoads } from '@/utils/coordinates';
@@ -20,6 +20,16 @@ const districts = [
   { name: 'Tây Hồ', color: '#1a2436', coords: [[21.08,105.81],[21.08,105.85],[21.055,105.84],[21.055,105.81],[21.08,105.81]] },
   { name: 'Long Biên', color: '#152030', coords: [[21.06,105.86],[21.06,105.90],[21.04,105.90],[21.035,105.86],[21.055,105.84],[21.06,105.86]] },
 ];
+
+// Slippy map tile helpers for inverse Mercator projections
+function tile2lng(x: number, z: number): number {
+  return (x / Math.pow(2, z)) * 360 - 180;
+}
+
+function tile2lat(y: number, z: number): number {
+  const n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
+  return (180 / Math.PI) * Math.atan(Math.sinh(n));
+}
 
 // Denser street grid for realistic city texture
 const streetGrid: [number, number][][] = [
@@ -65,7 +75,7 @@ const streetGrid: [number, number][][] = [
   [[21.02, 105.88], [21.06, 105.88]],
 ];
 
-function DistrictFill({ name, color, coords }: { name: string; color: string; coords: [number, number][] }) {
+function DistrictFill({ name, color, coords, showMesh = true }: { name: string; color: string; coords: [number, number][]; showMesh?: boolean }) {
   const shape = useMemo(() => {
     const s = new THREE.Shape();
     coords.forEach(([lat, lng], i) => {
@@ -88,10 +98,12 @@ function DistrictFill({ name, color, coords }: { name: string; color: string; co
 
   return (
     <group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
-        <shapeGeometry args={[shape]} />
-        <meshStandardMaterial color={color} roughness={0.9} />
-      </mesh>
+      {showMesh && (
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
+          <shapeGeometry args={[shape]} />
+          <meshStandardMaterial color={color} roughness={0.9} />
+        </mesh>
+      )}
       {/* District name label */}
       <Html position={[center[0], 0.1, center[1]]} center style={{ pointerEvents: 'none' }}>
         <div className="map-label map-label--district">{name}</div>
@@ -195,36 +207,190 @@ function RoadLine({ feature }: { feature: { coordinates: [number, number][]; sty
   );
 }
 
-export default function MapGround() {
+const TILE_TEMPLATES = {
+  voyager: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+  'dark-matter': 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+  satellite: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+};
+
+const textureLoader = new THREE.TextureLoader();
+
+interface TileProps {
+  x: number;
+  y: number;
+  zoom: number;
+  mapStyle: 'voyager' | 'dark-matter' | 'satellite';
+  width: number;
+  height: number;
+  centerX: number;
+  centerZ: number;
+}
+
+function Tile({ x, y, zoom, mapStyle, width, height, centerX, centerZ }: TileProps) {
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const [opacity, setOpacity] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    setTexture(null);
+    setOpacity(0);
+
+    const url = TILE_TEMPLATES[mapStyle]
+      .replace(/{z}/g, zoom.toString())
+      .replace(/{x}/g, x.toString())
+      .replace(/{y}/g, y.toString());
+
+    textureLoader.load(
+      url,
+      (tex) => {
+        if (isMounted) {
+          tex.colorSpace = THREE.SRGBColorSpace;
+          setTexture(tex);
+          
+          // Animate opacity fade-in for smooth transition
+          let op = 0;
+          const interval = setInterval(() => {
+            op += 0.08;
+            if (op >= 0.95) {
+              setOpacity(0.95);
+              clearInterval(interval);
+            } else {
+              setOpacity(op);
+            }
+          }, 20);
+          return () => clearInterval(interval);
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn('Failed to load map tile:', url, err);
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      if (texture) texture.dispose();
+    };
+  }, [x, y, zoom, mapStyle]);
+
+  if (!texture) return null;
+
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[centerX, -0.06, centerZ]}>
+      <planeGeometry args={[width, height]} />
+      <meshBasicMaterial map={texture} transparent opacity={opacity} depthWrite={true} />
+    </mesh>
+  );
+}
+
+function TileMap({ mapStyle }: { mapStyle: 'voyager' | 'dark-matter' | 'satellite' }) {
+  const zoom = 12;
+  const xStart = 3249;
+  const xEnd = 3254;
+  const yStart = 1801;
+  const yEnd = 1804;
+
+  const tiles = useMemo(() => {
+    const list = [];
+    for (let x = xStart; x <= xEnd; x++) {
+      for (let y = yStart; y <= yEnd; y++) {
+        // Compute geographic corners
+        const latTop = tile2lat(y, zoom);
+        const lngLeft = tile2lng(x, zoom);
+        const latBottom = tile2lat(y + 1, zoom);
+        const lngRight = tile2lng(x + 1, zoom);
+
+        // Convert corners to 3D units using the exact same gpsTo3D projection
+        const [p1x, , p1z] = gpsTo3D(latTop, lngLeft);
+        const [p2x, , p2z] = gpsTo3D(latBottom, lngRight);
+
+        const width = p2x - p1x;
+        const height = p2z - p1z;
+        const centerX = (p1x + p2x) / 2;
+        const centerZ = (p1z + p2z) / 2;
+
+        list.push({
+          x,
+          y,
+          width,
+          height,
+          centerX,
+          centerZ,
+        });
+      }
+    }
+    return list;
+  }, []);
+
   return (
     <group>
-      {/* Base ground — dark navy instead of pure black */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.15, 0]}>
-        <planeGeometry args={[250, 250]} />
-        <meshStandardMaterial color="#0e1524" roughness={1} />
+      {tiles.map((tile) => (
+        <Tile
+          key={`${tile.x}-${tile.y}`}
+          x={tile.x}
+          y={tile.y}
+          zoom={zoom}
+          mapStyle={mapStyle}
+          width={tile.width}
+          height={tile.height}
+          centerX={tile.centerX}
+          centerZ={tile.centerZ}
+        />
+      ))}
+    </group>
+  );
+}
+
+export default function MapGround() {
+  const mapStyle = useMetroStore((s) => s.mapStyle);
+  const baseColor = mapStyle === 'voyager' ? '#e8ecef' : '#0b0f19';
+
+  return (
+    <group>
+      {/* Base ground — matching active theme style */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.2, 0]}>
+        <planeGeometry args={[1000, 1000]} />
+        <meshStandardMaterial color={baseColor} roughness={1} />
       </mesh>
 
-      {/* Always show map features (terrain toggle now controls elevation, not visibility) */}
-      {/* District fill areas */}
-      {districts.map(d => (
-        <DistrictFill key={d.name} name={d.name} color={d.color} coords={d.coords as [number, number][]} />
-      ))}
+      {/* Render detailed tile maps for Voyager, Dark Matter, or Satellite styles */}
+      {mapStyle !== 'vector' && <TileMap mapStyle={mapStyle} />}
 
-      {/* Street grid for visual texture */}
-      <StreetLines />
+      {/* Always show district names and vector highlights for satellite/vector to provide context */}
+      {(mapStyle === 'vector' || mapStyle === 'satellite') && (
+        <>
+          {districts.map((d) => (
+            <DistrictFill
+              key={d.name}
+              name={d.name}
+              color={d.color}
+              coords={d.coords as [number, number][]}
+              showMesh={mapStyle === 'vector'}
+            />
+          ))}
+        </>
+      )}
 
-      {/* Rivers */}
-      <RiverMesh feature={redRiver} />
-      <RiverMesh feature={toLichRiver} />
+      {/* Show rivers, lakes, roads only in standard vector mode */}
+      {mapStyle === 'vector' && (
+        <>
+          {/* Street grid for visual texture */}
+          <StreetLines />
 
-      {/* Lakes */}
-      <LakeMesh feature={westLake} />
-      <LakeMesh feature={hoanKiemLake} />
+          {/* Rivers */}
+          <RiverMesh feature={redRiver} />
+          <RiverMesh feature={toLichRiver} />
 
-      {/* Major Roads */}
-      {majorRoads.map((road, i) => (
-        <RoadLine key={i} feature={road} />
-      ))}
+          {/* Lakes */}
+          <LakeMesh feature={westLake} />
+          <LakeMesh feature={hoanKiemLake} />
+
+          {/* Major Roads */}
+          {majorRoads.map((road, i) => (
+            <RoadLine key={i} feature={road} />
+          ))}
+        </>
+      )}
     </group>
   );
 }

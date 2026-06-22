@@ -131,8 +131,8 @@ export default function StationMarker({ station, lineColor }: StationMarkerProps
         <mesh position={[0, -y / 2, 0]}>
           <cylinderGeometry args={[0.02, 0.03, y, 4]} />
           <meshStandardMaterial
-            color={markerColor} transparent
-            opacity={isRidingOther ? 0.08 : (isSelectedLine ? 0.35 : 0.08)}
+            color={lineColor} transparent
+            opacity={isRidingOther ? 0.15 : (isSelectedLine ? 0.5 : 0.15)}
           />
         </mesh>
       )}

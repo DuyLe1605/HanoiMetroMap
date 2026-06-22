@@ -6,7 +6,7 @@ const CENTER_LAT = 21.00;
 const CENTER_LNG = 105.79;
 
 // Scale factor to convert degrees to 3D units
-const SCALE = 800;
+const SCALE = 1800;
 
 /**
  * Convert GPS (lat, lng) to 3D coordinates (x, y, z)

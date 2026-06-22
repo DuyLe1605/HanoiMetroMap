@@ -175,9 +175,9 @@ export default function MetroLine3D({ lineId, color, colorGlow }: MetroLine3DPro
         <mesh key={i} position={[pos.x, pos.y / 2, pos.z]}>
           <cylinderGeometry args={[0.03, 0.04, pos.y, 4]} />
           <meshStandardMaterial
-            color="#1a2030"
+            color={color}
             transparent
-            opacity={isSelected ? 0.5 : 0.15}
+            opacity={isSelected ? 0.22 : 0.06}
             roughness={0.8}
           />
         </mesh>
