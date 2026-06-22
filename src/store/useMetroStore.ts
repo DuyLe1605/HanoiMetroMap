@@ -9,13 +9,11 @@ interface MetroState {
   hoveredStationId: string | null;
   setHoveredStation: (id: string | null) => void;
 
-  // Fare calculator: from/to selection
+  // Fare calculator
   fromStationId: string | null;
   toStationId: string | null;
-  selectionMode: 'from' | 'to' | null;
   setFromStation: (id: string | null) => void;
   setToStation: (id: string | null) => void;
-  setSelectionMode: (mode: 'from' | 'to' | null) => void;
   clearFareSelection: () => void;
 
   // Test ride
@@ -23,64 +21,67 @@ interface MetroState {
   rideProgress: number;
   rideLineId: string | null;
   rideSpeed: number;
+  ridePaused: boolean;
   startRide: (lineId: string) => void;
   stopRide: () => void;
   setRideProgress: (progress: number) => void;
   setRideSpeed: (speed: number) => void;
+  toggleRidePause: () => void;
 
-  // Camera
-  cameraMode: 'overview' | 'line-focus' | 'riding';
-  setCameraMode: (mode: 'overview' | 'line-focus' | 'riding') => void;
+  // View mode
+  is3D: boolean;
+  toggle3D: () => void;
+
+  // Display settings
+  showStationNames: boolean;
+  showMapFeatures: boolean;
+  toggleStationNames: () => void;
+  toggleMapFeatures: () => void;
+
+  // Active tab
+  activeTab: 'ride' | 'route' | 'fare' | 'stations' | 'info';
+  setActiveTab: (tab: 'ride' | 'route' | 'fare' | 'stations' | 'info') => void;
 }
 
 export const useMetroStore = create<MetroState>((set) => ({
-  // Line selection
   selectedLineId: null,
   setSelectedLine: (id) => set((state) => ({
     selectedLineId: state.selectedLineId === id ? null : id,
-    cameraMode: state.selectedLineId === id ? 'overview' : (id ? 'line-focus' : 'overview'),
   })),
 
-  // Station hover
   hoveredStationId: null,
   setHoveredStation: (id) => set({ hoveredStationId: id }),
 
-  // Fare calculator
   fromStationId: null,
   toStationId: null,
-  selectionMode: null,
-  setFromStation: (id) => set({ fromStationId: id, selectionMode: 'to' }),
-  setToStation: (id) => set({ toStationId: id, selectionMode: null }),
-  setSelectionMode: (mode) => set({ selectionMode: mode }),
-  clearFareSelection: () => set({
-    fromStationId: null,
-    toStationId: null,
-    selectionMode: null,
-  }),
+  setFromStation: (id) => set({ fromStationId: id }),
+  setToStation: (id) => set({ toStationId: id }),
+  clearFareSelection: () => set({ fromStationId: null, toStationId: null }),
 
-  // Test ride
   isRiding: false,
   rideProgress: 0,
   rideLineId: null,
   rideSpeed: 1,
+  ridePaused: false,
   startRide: (lineId) => set({
-    isRiding: true,
-    rideProgress: 0,
-    rideLineId: lineId,
-    rideSpeed: 1,
-    selectedLineId: lineId,
-    cameraMode: 'riding',
+    isRiding: true, rideProgress: 0, rideLineId: lineId,
+    rideSpeed: 1, ridePaused: false, selectedLineId: lineId,
   }),
   stopRide: () => set({
-    isRiding: false,
-    rideProgress: 0,
-    rideLineId: null,
-    cameraMode: 'overview',
+    isRiding: false, rideProgress: 0, rideLineId: null, ridePaused: false,
   }),
   setRideProgress: (progress) => set({ rideProgress: progress }),
   setRideSpeed: (speed) => set({ rideSpeed: speed }),
+  toggleRidePause: () => set((s) => ({ ridePaused: !s.ridePaused })),
 
-  // Camera
-  cameraMode: 'overview',
-  setCameraMode: (mode) => set({ cameraMode: mode }),
+  is3D: true,
+  toggle3D: () => set((s) => ({ is3D: !s.is3D })),
+
+  showStationNames: true,
+  showMapFeatures: true,
+  toggleStationNames: () => set((s) => ({ showStationNames: !s.showStationNames })),
+  toggleMapFeatures: () => set((s) => ({ showMapFeatures: !s.showMapFeatures })),
+
+  activeTab: 'ride',
+  setActiveTab: (tab) => set({ activeTab: tab }),
 }));

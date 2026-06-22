@@ -2,112 +2,147 @@
 
 import { useMemo } from 'react';
 import { useMetroStore } from '@/store/useMetroStore';
+import { metroLines } from '@/data/lines';
 import { getStationsByLine } from '@/data/stations';
+import { gpsDistance } from '@/utils/coordinates';
 
 export default function RideOverlay() {
   const isRiding = useMetroStore(s => s.isRiding);
-  const rideProgress = useMetroStore(s => s.rideProgress);
   const rideLineId = useMetroStore(s => s.rideLineId);
+  const rideProgress = useMetroStore(s => s.rideProgress);
   const rideSpeed = useMetroStore(s => s.rideSpeed);
+  const ridePaused = useMetroStore(s => s.ridePaused);
   const stopRide = useMetroStore(s => s.stopRide);
   const setRideSpeed = useMetroStore(s => s.setRideSpeed);
+  const toggleRidePause = useMetroStore(s => s.toggleRidePause);
 
-  const stations = useMemo(() => {
-    if (!rideLineId) return [];
-    return getStationsByLine(rideLineId);
-  }, [rideLineId]);
+  const line = useMemo(() => metroLines.find(l => l.id === rideLineId), [rideLineId]);
+  const stations = useMemo(() => rideLineId ? getStationsByLine(rideLineId) : [], [rideLineId]);
 
-  const currentStationIndex = useMemo(() => {
-    return Math.min(
-      Math.floor(rideProgress * stations.length),
-      stations.length - 1
-    );
-  }, [rideProgress, stations.length]);
+  // Calculate distances between stations
+  const stationDistances = useMemo(() => {
+    const dists: number[] = [0];
+    let total = 0;
+    for (let i = 1; i < stations.length; i++) {
+      const d = gpsDistance(stations[i - 1].lat, stations[i - 1].lng, stations[i].lat, stations[i].lng);
+      total += d;
+      dists.push(total);
+    }
+    return { cumulative: dists, total };
+  }, [stations]);
 
-  const currentStation = stations[currentStationIndex];
-  const nextStation = stations[currentStationIndex + 1];
+  // Current station and next station
+  const currentInfo = useMemo(() => {
+    if (!stations.length) return { currentIdx: 0, nextIdx: 1, distToNext: 0, elevation: 0 };
+    const progressDist = rideProgress * stationDistances.total;
+    let currentIdx = 0;
+    for (let i = 0; i < stationDistances.cumulative.length - 1; i++) {
+      if (progressDist >= stationDistances.cumulative[i]) currentIdx = i;
+    }
+    const nextIdx = Math.min(currentIdx + 1, stations.length - 1);
+    const distToNext = (stationDistances.cumulative[nextIdx] - progressDist) * 1000; // meters
+    const elevation = stations[currentIdx]?.elevation || 0;
+    return { currentIdx, nextIdx, distToNext: Math.max(0, distToNext), elevation };
+  }, [rideProgress, stations, stationDistances]);
 
-  if (!isRiding || !rideLineId) return null;
+  if (!isRiding || !line) return null;
 
-  const lineColor = rideLineId === 'line-2a' ? '#00B14F' : '#E5441B';
-  const percentComplete = Math.round(rideProgress * 100);
+  const speeds = [1, 2, 4, 10];
 
   return (
-    <div className="ride-overlay">
-      <div className="ride-header" style={{ borderColor: lineColor }}>
-        <div className="ride-title">
-          🚆 Đang đi thử tuyến {rideLineId === 'line-2a' ? '2A' : '3'}
-        </div>
-        <button className="ride-stop-btn" onClick={stopRide}>
-          ⏹ Dừng
-        </button>
-      </div>
+    <>
+      {/* Back button — top left */}
+      <button className="ride-back-btn" onClick={stopRide}>
+        ← Quay lại bản đồ
+      </button>
 
-      {/* Progress bar */}
-      <div className="ride-progress-container">
+      {/* Bottom overlay */}
+      <div className="ride-overlay">
+        {/* Drag handle */}
+        <div className="ride-handle" />
+
+        {/* Line name */}
+        <div className="ride-line-name" style={{ color: line.color }}>
+          {line.name}
+        </div>
+
+        {/* Progress bar */}
         <div className="ride-progress-bar">
           <div
             className="ride-progress-fill"
             style={{
-              width: `${percentComplete}%`,
-              backgroundColor: lineColor,
-              boxShadow: `0 0 10px ${lineColor}`,
+              width: `${rideProgress * 100}%`,
+              backgroundColor: line.color,
             }}
           />
         </div>
-        <div className="ride-progress-text">{percentComplete}%</div>
-      </div>
 
-      {/* Current station info */}
-      <div className="ride-station-info">
-        <div className="ride-current">
-          <span className="ride-label">Ga hiện tại:</span>
-          <span className="ride-station-name" style={{ color: lineColor }}>
-            {currentStation?.name || '—'}
-          </span>
-        </div>
-        {nextStation && (
-          <div className="ride-next">
-            <span className="ride-label">Ga tiếp theo:</span>
-            <span className="ride-station-name">{nextStation.name}</span>
+        {/* Next station + distance info */}
+        <div className="ride-info-row">
+          <div className="ride-info-left">
+            <span className="ride-small-label">Ga tiếp theo </span>
+            <span className="ride-next-name" style={{ color: line.color }}>
+              {stations[currentInfo.nextIdx]?.name || '—'}
+            </span>
+            <span className="ride-distance">
+              {currentInfo.distToNext > 0 ? ` ${Math.round(currentInfo.distToNext)} m` : ''}
+            </span>
           </div>
-        )}
-      </div>
+          <div className="ride-info-right">
+            <span className="ride-elevation">↕ {currentInfo.elevation} m</span>
+            <span className="ride-progress-pct">{Math.round(rideProgress * 100)}%</span>
+          </div>
+        </div>
 
-      {/* Speed controls */}
-      <div className="ride-speed">
-        <span className="ride-label">Tốc độ:</span>
-        <div className="ride-speed-btns">
-          {[1, 2, 4].map(speed => (
+        {/* Controls */}
+        <div className="ride-controls">
+          {/* Stop */}
+          <button className="ride-control-btn" onClick={stopRide} title="Dừng lại">
+            ■
+          </button>
+
+          {/* Pause / Play */}
+          <button
+            className="ride-control-btn ride-control-btn--main"
+            onClick={toggleRidePause}
+            title={ridePaused ? 'Tiếp tục' : 'Tạm dừng'}
+          >
+            {ridePaused ? '▶' : '⏸'}
+          </button>
+
+          {/* Speed buttons */}
+          {speeds.map(sp => (
             <button
-              key={speed}
-              className={`speed-btn ${rideSpeed === speed ? 'speed-btn--active' : ''}`}
-              style={rideSpeed === speed ? { backgroundColor: lineColor } : {}}
-              onClick={() => setRideSpeed(speed)}
+              key={sp}
+              className={`speed-btn ${rideSpeed === sp ? 'speed-btn--active' : ''}`}
+              style={rideSpeed === sp ? { backgroundColor: line.color } : {}}
+              onClick={() => setRideSpeed(sp)}
             >
-              ×{speed}
+              {sp}×
             </button>
           ))}
         </div>
-      </div>
 
-      {/* Station progress dots */}
-      <div className="ride-stations-dots">
-        {stations.map((s, i) => {
-          const isPassed = i <= currentStationIndex;
-          return (
-            <div key={s.id} className="ride-dot-wrapper">
-              <div
-                className={`ride-dot ${isPassed ? 'ride-dot--passed' : ''}`}
-                style={isPassed ? { backgroundColor: lineColor, boxShadow: `0 0 6px ${lineColor}` } : {}}
-              />
-              <span className={`ride-dot-label ${i === currentStationIndex ? 'ride-dot-label--current' : ''}`}>
-                {s.name}
-              </span>
-            </div>
-          );
-        })}
+        {/* Station dots line */}
+        <div className="ride-stations-line">
+          {stations.map((s, i) => {
+            const passed = (stationDistances.cumulative[i] / stationDistances.total) <= rideProgress;
+            const isCurrent = i === currentInfo.currentIdx;
+            const isNext = i === currentInfo.nextIdx;
+            return (
+              <div key={s.id} className="ride-station-dot-col">
+                <div
+                  className={`ride-dot ${passed ? 'ride-dot--passed' : ''} ${isCurrent ? 'ride-dot--current' : ''}`}
+                  style={{ backgroundColor: passed ? line.color : undefined }}
+                />
+                <span className={`ride-dot-label ${isCurrent ? 'ride-dot-label--current' : ''} ${isNext ? 'ride-dot-label--next' : ''}`}>
+                  {s.name}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

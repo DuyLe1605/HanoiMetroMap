@@ -2,11 +2,10 @@
 
 import dynamic from 'next/dynamic';
 import Header from '@/components/ui/Header';
-import LineSelector from '@/components/ui/LineSelector';
+import BottomToolbar from '@/components/ui/BottomToolbar';
 import FareCalculator from '@/components/ui/FareCalculator';
 import RideOverlay from '@/components/ui/RideOverlay';
 
-// Dynamic import MetroScene to avoid SSR issues with Three.js
 const MetroScene = dynamic(() => import('@/components/3d/MetroScene'), {
   ssr: false,
   loading: () => (
@@ -23,15 +22,14 @@ const MetroScene = dynamic(() => import('@/components/3d/MetroScene'), {
 export default function HomePage() {
   return (
     <main className="app-container">
-      <Header />
-
       <div className="scene-container">
         <MetroScene />
       </div>
 
+      <Header />
       <FareCalculator />
       <RideOverlay />
-      <LineSelector />
+      <BottomToolbar />
     </main>
   );
 }
