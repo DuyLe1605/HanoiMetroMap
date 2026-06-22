@@ -284,11 +284,11 @@ function Tile({ x, y, zoom, mapStyle, width, height, centerX, centerZ }: TilePro
 }
 
 function TileMap({ mapStyle }: { mapStyle: 'voyager' | 'dark-matter' | 'satellite' }) {
-  const zoom = 12;
-  const xStart = 3249;
-  const xEnd = 3254;
-  const yStart = 1801;
-  const yEnd = 1804;
+  const zoom = 14;
+  const xStart = 13003;
+  const xEnd = 13009;
+  const yStart = 7210;
+  const yEnd = 7217;
 
   const tiles = useMemo(() => {
     const list = [];
@@ -365,7 +365,7 @@ export default function MapGround() {
               name={d.name}
               color={d.color}
               coords={d.coords as [number, number][]}
-              showMesh={mapStyle === 'vector'}
+              showMesh={false}
             />
           ))}
         </>
